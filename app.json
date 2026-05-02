@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Bajaj Finserve",
+    "slug": "betting-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./src/assets/bajaj.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "bajaj.apk2025"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/bajaj.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "bajaj.apk2025"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "115156ec-d2fe-425c-a058-6a9b652c13fa"
+      }
+    }
+  }
+}

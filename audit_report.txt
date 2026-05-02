@@ -1,0 +1,74 @@
+# PROJECT AUDIT REPORT - BITFIX/BET
+
+## 1. Security Vulnerabilities
+
+### 🚨 Critical: Hardcoded Credentials
+- **File:** `src/screens/LoginScreen.tsx`
+- **Issue:** Local testing users (`bit`, `john`) with plaintext passwords (`420`, `1234`) are hardcoded in the source code.
+- **Risk:** Anyone who can access the app binary or source code can bypass intended authentication.
+
+### ⚠️ High: Lack of API Authentication
+- **Files:** `src/utils/resultEntryHelpers.ts`, `src/screens/NetPayScreen.tsx`, etc.
+- **Issue:** Most POST and GET requests to the backend do not include any authorization headers (e.g., JWT, Bearer Token).
+- **Risk:** The backend endpoints appear to be unprotected, allowing unauthorized data submission or retrieval.
+
+### ⚠️ Medium: Insecure Sensitive Data Storage
+- **File:** `src/screens/LoginScreen.tsx`
+- **Issue:** Business-critical flags like `salesBlocked` are stored in `AsyncStorage` without encryption.
+- **Risk:** A malicious user or another app on a rooted device could modify these flags to bypass business rules.
+
+### ⚠️ Medium: Hardcoded API Domains
+- **Files:** `src/screens/NetPayScreen.tsx`, `src/utils/resultEntryOldApi.ts`, etc.
+- **Issue:** The backend URL (`https://www.muralibajaj.site`) is hardcoded across multiple files.
+- **Risk:** Makes environment management difficult and exposes backend infrastructure details.
+
+---
+
+## 2. Performance & Efficiency Issues
+
+### 🐢 Inefficient API Usage (Redundant Calls)
+- **File:** `src/screens/NetPayScreen.tsx` (Lines 118-172)
+- **Issue:** The app fetches rates for each draw ("DEAR 1 PM", "LSK 3 PM", etc.) in a sequential `for` loop.
+- **Impact:** Causes multiple network round-trips when a single bulk API call could retrieve all necessary rates.
+
+### 🐢 Heavy Frontend Computation
+- **File:** `src/utils/resultEntryHelpers.ts` (`handlePaste`)
+- **Issue:** Complex regex parsing of clipboard text to extract game times, dates, and ticket numbers is done entirely on the frontend.
+- **Impact:** If regex logic changes or grows more complex, it can't be updated without a new app release. Inconsistent parsing across different devices.
+
+### 🐢 Frequent AsyncStorage Writes
+- **File:** `src/screens/LoginScreen.tsx`
+- **Issue:** Multiple sequential `await AsyncStorage.setItem` calls during login.
+- **Impact:** Small but unnecessary performance hit; better to store a single object.
+
+---
+
+## 3. Architectural & Code Quality Mistakes
+
+### 🏗️ Business Logic in Screens
+- **File:** `src/screens/NetPayScreen.tsx`
+- **Issue:** Business constants (like `payouts` and `Domain`) are defined and exported from a screen component.
+- **Fix:** Move these to a dedicated `config` or `constants` file.
+
+### 🏗️ Lack of Standardization
+- **Issue:** The codebase mixed `fetch` and `axios` for network requests.
+- **Fix:** Standardize on one (preferably `axios` with an interceptor for auth tokens).
+
+### 🏗️ Hardcoded Strings (Magic Strings)
+- **Files:** Multiple
+- **Issue:** Game times like "DEAR 1 PM" and "LSK 3 PM" are hardcoded in many places (navigators, pickers, API mappers).
+- **Fix:** Use a centralized `GAMETYPES` enum/constant.
+
+### 🏗️ Excessive Console Logging
+- **Files:** Multiple
+- **Issue:** Sensitive data (payloads, user data) is logged using `console.log` in production-ready files.
+- **Risk:** Potential leakage of sensitive information in logcat/console on physical devices.
+
+---
+
+## 4. Recommendations
+1. **Implement JWT Authentication**: Ensure all API requests require a valid token.
+2. **Centralize Configuration**: Use an `.env` file or a centralized `api.config.ts`.
+3. **Refactor Reports**: Move complex calculation logic and bulk rate fetching to the backend.
+4. **Remove Hardcoded Users**: Delete the `localUsers` object from `LoginScreen.tsx`.
+5. **Standardize API Client**: Create an axios instance with base URL and auth header injection.
